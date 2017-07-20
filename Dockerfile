@@ -5,10 +5,9 @@ LABEL architecture="ARMv7"
 ADD qemu-arm-static.tar.gz /
 ADD megaupload_credentials.txt /tmp/
 
-RUN apk add --no-cache curl-dev git make automake autoconf wget gcc g++ \
-	libssl1.0 libcurl glib-dev gobject-introspection asciidoc tar sed && \
-
-	wget https://ftp.gnu.org/gnu/gcc/gcc-4.9.2/gcc-4.9.2.tar.gz
+RUN apk add --no-cache git curl-dev git make automake autoconf wget gcc g++ \
+	libssl1.0 libcurl glib-dev gobject-introspection \
+	linux-headers asciidoc tar sed && \
 
 	# Get MegaUpload tools to download demo
 	git clone https://github.com/megous/megatools.git /tmp/megatools && \
@@ -23,11 +22,15 @@ RUN apk add --no-cache curl-dev git make automake autoconf wget gcc g++ \
 	megaget '/Root/acapelaTTS.tar.gz' -u $username -p $passwd && \
 
 	mkdir /opt && tar -zxvf acapelaTTS.tar.gz -C /opt/ && \
-	cd /opt/ && rm -rf /tmp/*
+        cd /opt/ && rm -rf /tmp/* && \
 
-RUN apk add linux-headers
-RUN cd /opt/*LinuxEmbedded*/sdk/nscapi/sample/nscapidemo && \
-	gcc -v
+	apk del gcc g++ && \
+	echo 'http://dl-cdn.alpinelinux.org/alpine/v3.2/main' > /etc/apk/repositories && \
+        apk --no-cache add gcc g++
+
+RUN 	cp -r /opt/*LinuxEmbedded*/libraries/arm-gcc-4.9.2-gnueabihf/* /opt/*LinuxEmbedded*/libraries && \
+	cd /opt/*LinuxEmbedded*/sdk/nscapi/sample/nscapidemo
+	#make
 
 WORKDIR /opt
 ENTRYPOINT /bin/sh
